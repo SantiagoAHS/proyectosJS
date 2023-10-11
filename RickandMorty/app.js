@@ -1,80 +1,57 @@
+import { createCard,createCardModal, createPag} from './ui.js';
+
 const URL = 'https://rickandmortyapi.com/api';
 const containerChar = document.querySelector('.characters');
 const pagination = document.querySelector('.pagination');
+const modalTitle = document.querySelector('.modal-title');
+const modalBody = document.querySelector('.modal-body');
 
-function createPage(){
-  let buttons = ``;
-  for(let i = 1; i<=42; i++){
-    buttons += `
-    <li class="page-item">
-    <a class="page-link" href="#" data-id="${i}">${i}</a>
-    </li>
-    `
-  }
-  pagination.innerHTML = buttons;
-}
+const fetchApi = url => fetch(url).then(response => response.json())
 
-//const page = prompt('Cual página? ')
-createPage();
+pagination.innerHTML = createPag();
 
-function getCharacter(page=1){
-fetch(`${ URL }/character/?page=${page}`)
-.then(Response => Response.json())
-.then(data => {
-    console.log(data.info);
+function getCharacters(page=1){
+  fetchApi(`${ URL }/character/?page=${ page}`)
+  .then(data => {
     const characters = data.results;
-    /*characters.forEach(character => {
-        const p = document.createElement('p');
-        p.innerHTML = character.name;
-        containerChar.appendChild(p);
-    })*/
-    showCharacters(characters);
-})
+    showCaracters(characters);
+  })
 }
 
-getCharacter();
-
-
-
-/*
-<div class="card" style="width: 18rem;">
-  <img src="..." class="card-img-top" alt="...">
-  <div class="card-body">
-    <h5 class="card-title">Card title</h5>
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    <a href="#" class="btn btn-primary">Go somewhere</a>
-  </div>
-</div>
-*/
-function createCard(character){
-    const card = document.createElement('div');
-    card.classList.add('card', 'mt-3', 'bg-secondary-subtitle');
-    card.style.width = '18rem';
-    const htmlCard = `
-    <img src="${ character.image }" class="card-img-top" alt="...">
-    <div class="card-body">
-      <h5 class="card-title">${ character.name }</h5>
-      <p class="card-text">${ character.status }</p>
-      <p class="card-text">${ character.origin.name }</p>
-      <a href="#" class="btn btn-success" data-id="${ character.id }">  Ver mas</a>
-      </div>
-      `
-      card.innerHTML = htmlCard;
-      return card;
-    
+function getCharacterById(id){
+  fetchApi(`${ URL }/character/${ id }`)
+  .then(data => {
+    const character = data;
+    modalTitle.innerHTML = character.name;
+    modalBody.innerHTML = '';
+    modalBody.appendChild(createCardModal(character));
+  })
 }
-function showCharacters(characters){
-    containerChar.innerHTML = '';
-    characters.forEach(character => {
-        containerChar.appendChild(createCard(character));
-    });
+
+function showCaracters(characters){
+  containerChar.innerHTML = '';
+  characters.forEach(character => {
+    containerChar.appendChild(createCard(character));
+  });
 }
 
 function getButton(e){
   e.preventDefault();
   if(e.target.classList.contains('page-link')){
-    id = e.target.getAttribute('data-id');
-    getCharacter(id);
+    const id = e.target.getAttribute('data-id');
+    getCharacters(id);
   }
 }
+
+function getButtonCard(e){
+  e.preventDefault();
+  if(e.target.classList.contains('btn')){
+    const id = e.target.getAttribute('data-id');
+    getCharacterById(id);
+  }
+}
+
+getCharacters();
+createPag();
 pagination.addEventListener('click', getButton);
+containerChar.addEventListener('click', getButtonCard);
